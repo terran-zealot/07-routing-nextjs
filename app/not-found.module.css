@@ -1,0 +1,11 @@
+.title {
+  margin: 2rem 0 0.75rem;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+}
+
+.description {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.6;
+}
