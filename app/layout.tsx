@@ -4,6 +4,8 @@ import "./globals.css";
 import TanStackProvider from "../components/TanStackProvider/TanStackProvider";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";
+// import modal from "./@modal/default"
+import type { ReactNode } from 'react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,14 +25,19 @@ export const metadata: Metadata = {
 
 
 export default function RootLayout({
-  children
-}: Readonly<{ children: React.ReactNode; }>) {
+  children,
+  modal,
+}: Readonly<{
+  children: React.ReactNode;
+  modal?: ReactNode;
+ }>) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <TanStackProvider>
           <Header />
           <main>{children}</main>
+          {modal ?? null}
           <Footer/>
             <p>Created <time dateTime="2025">2025</time></p>
           

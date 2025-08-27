@@ -4,17 +4,17 @@ import css from './layout.module.css';
 export default function FilterLayout({
   children,
   sidebar,
-  modal,
+  // modal,
 }: {
   children: ReactNode;
   sidebar: ReactNode;
-  modal: ReactNode;
+  // modal: ReactNode;
 }) {
   return (
     <div className={css.wrapper}>
       <aside className={css.sidebar}>{sidebar}</aside>
       <main className={css.content}>{children}</main>
-      {modal}
+      {/* {modal} */}
     </div>
   );
 }
