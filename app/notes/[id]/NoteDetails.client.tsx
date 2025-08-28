@@ -1,34 +1,31 @@
 
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from 'next/navigation';
-import { getSingleNote } from "@/lib/api";
+import { useParams } from "next/navigation";
+import { fetchNoteById } from "@/lib/api";
+import type { Note } from "@/types/note";
 
 const NoteDetailsClient = () => {
-	const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
 
-  const { data: note, isLoading, error } = useQuery({
+  const { data, isLoading, isError, error } = useQuery<Note, Error>({
     queryKey: ["note", id],
-    queryFn: () => getSingleNote(id),
-    refetchOnMount: false,
+    queryFn: () => fetchNoteById(String(id)),
+    enabled: !!id,
   });
 
-  if (isLoading) return <p>Loading...</p>;
-
-  if (error || !note) return <p>Some error..</p>;
-
-  const formattedDate = note.updatedAt
-    ? `Updated at: ${note.updatedAt}`
-    : `Created at: ${note.createdAt}`;
+  if (isLoading) return <p>Loading…</p>;
+  if (isError) return <p>Error: {error.message}</p>;
+  if (!data) return <p>Not found</p>;
 
   return (
-    <div>
-      <h2>{note.title}</h2>
-      <p>{note.content}</p>
-      <p>{formattedDate}</p>
-    </div>
+    <article>
+      <h1>{data.title}</h1>
+      <p>{data.content}</p>
+      {data.tag && <p><strong>Tag:</strong> {data.tag}</p>}
+      <p><small>Updated: {new Date(data.updatedAt).toLocaleString()}</small></p>
+    </article>
   );
 };
 
