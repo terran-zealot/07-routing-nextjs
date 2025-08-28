@@ -1,25 +1,58 @@
-import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
-import NotesClient from './Notes.client';
-import { fetchNotes } from '@/lib/api';
-import type { Note } from '@/types/note';
+// app/notes/filter/[...slug]/page.tsx
+import NoteList from "@/components/NoteList/NoteList";
+import { fetchNotes, type FetchNotesParams } from "@/lib/api";
+import type { Note } from "@/types/note";
 
-type Params = Promise<{ slug?: string[] }>;
+type Props = { params: Promise<{ slug?: string[] }> };
 
-export default async function Page({ params }: { params: Params }) {
-  const { slug } = await params;
-  const raw = slug?.[0] ?? 'All';
-  const tag: Note['tag'] | undefined =
-    raw === 'All' ? undefined : (decodeURIComponent(raw) as Note['tag']);
+export default async function FilteredNotesPage({ params }: Props) {
 
-  const qc = new QueryClient();
-  await qc.prefetchQuery({
-    queryKey: ['notes', { page: 1, perPage: 12, search: '', tag }],
-    queryFn: () => fetchNotes({ page: 1, perPage: 12, search: '', tag }),
-  });
+  const { slug = [] } = await params;
+  const raw = slug[0] ?? "All";
+  const tag = decodeURIComponent(raw);
+
+  const options: FetchNotesParams = {
+    page: 1,
+    perPage: 12,
+    ...(tag === "All" ? {} : { tag: tag as Note["tag"] }),
+  };
+
+  const { notes } = await fetchNotes(options);
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
-      <NotesClient tag={tag} />
-    </HydrationBoundary>
+    <main>
+      <h1 className="text-2xl font-semibold mb-4">Notes · {tag}</h1>
+      <NoteList notes={notes} />
+    </main>
   );
 }
+
+
+
+
+
+// import NotesList from "@/components/NoteList/NoteList";
+// import { fetchNotes, type FetchNotesParams } from "@/lib/api";
+// import type { Note } from "@/types/note";
+
+// type PageProps = { params: { slug?: string[] } };
+
+// export default async function FilteredNotesPage({ params }: PageProps) {
+//   const raw = params.slug?.[0] ?? "All";
+//   const tag = decodeURIComponent(raw);
+
+//   const paramsForApi: FetchNotesParams = {
+//     page: 1,
+//     perPage: 12,
+//     ...(tag === "All" ? {} : { tag: tag as Note["tag"] }),
+//   };
+
+//   const { notes } = await fetchNotes(paramsForApi);
+
+//   return (
+//     <main>
+//       <h1 className="text-2xl font-semibold mb-4">Notes · {tag}</h1>
+//       <NotesList notes={notes} />
+//     </main>
+//   );
+// }

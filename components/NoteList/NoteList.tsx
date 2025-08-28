@@ -1,47 +1,49 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteNote } from '../../lib/api';
-import { type Note } from '../../types/note';
-import css from './NoteList.module.css';
-import Link from 'next/link';
+"use client";
 
-interface NoteListProps {
-  notes: Note[];
-}
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import type { Note } from "@/types/note";
+import { deleteNote } from "@/lib/api";
 
-export default function NoteList({ notes }: NoteListProps) {
-  const queryClient = useQueryClient();
+type Props = { notes: Note[] };
 
-  const mutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
+export default function NoteList({ notes }: Props) {
+  const router = useRouter();
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  const handleDelete = (id: string) => {
-    mutation.mutate(id);
+  const onDelete = async (id: string) => {
+    setBusyId(id);
+    try {
+      await deleteNote(id);
+      startTransition(() => router.refresh());
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  if (!notes.length) return <p>No notes found</p>;
+  if (!notes?.length) return <p>No notes yet.</p>;
 
   return (
-    <ul className={css.list}>
-      {notes.map(note => (
-        <li key={note.id} className={css.listItem}>
-          <h2 className={css.title}>
-            <Link href={`/notes/${note.id}`}>{note.title}</Link>
-          </h2>
-
-          <p className={css.content}>{note.content}</p>
-          <div className={css.footer}>
-            <span className={css.tag}>{note.tag}</span>
+    <ul>
+      {notes.map((n) => (
+        <li key={n.id} className="mb-3">
+          <div className="flex items-center gap-3">
+            <Link href={`/notes/${encodeURIComponent(n.id)}`}>
+              <h3 className="font-semibold underline">{n.title || "Untitled"}</h3>
+            </Link>
             <button
-              className={css.button}
-              onClick={() => handleDelete(note.id)}
+              onClick={() => onDelete(n.id)}
+              disabled={isPending || busyId === n.id}
+              aria-busy={isPending || busyId === n.id}
             >
-              Delete
+              {busyId === n.id ? "Deleting..." : "Delete"}
             </button>
           </div>
+          {n.content ? (
+            <p className="opacity-80 text-sm">{n.content.slice(0, 120)}</p>
+          ) : null}
         </li>
       ))}
     </ul>
